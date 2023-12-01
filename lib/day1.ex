@@ -48,7 +48,7 @@ require Logger
 
   end
 
-  @spec destring(String.t()) :: String.t()
+  @spec destring(String.t()) :: integer()
   def destring(digit) when digit == "one" or digit == "1" do 1 end
   def destring(digit) when digit == "two" or digit == "2"  do 2 end
   def destring(digit) when digit =="three" or digit == "3" do 3 end
@@ -84,13 +84,6 @@ require Logger
     case Regex.run(regex, line, capture: :first) do
       nil -> nil
       [number_word] -> destring(number_word)
-    end
-  end
-
-  defp try_digit(mebbe_digit) do
-    case Integer.parse(mebbe_digit) do
-      :error -> :error
-      {digit, _} -> digit
     end
   end
 end
