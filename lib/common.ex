@@ -1,3 +1,12 @@
+defmodule Point do
+
+  @typedoc """
+  Pair representing a point in 2-space
+  """
+  @type p :: %__MODULE__{x: integer(), y: integer()}
+  defstruct x: -1, y: -1
+end
+
 defmodule Common do
 
   def open({:error, _msg}, _) do
