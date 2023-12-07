@@ -28,9 +28,53 @@ defmodule Day6Test do
     dist = Day6.convert_line_to_numbers("Distance:  9  40  200")
 
     completed = Day6.calculate_races(time, dist)
+    Logger.debug("#{inspect completed}")
+    lengths = Enum.map(completed, fn sublist -> length(sublist) end)
+    Logger.debug("ehhhh #{inspect lengths}")
 
-    Logger.debug("What is the output: #{inspect completed}")
-    assert length(completed) == (4 + 8 + 9)
+    assert Enum.product(lengths) == 4 * 8 * 9
+  end
+
+  test "Do the dekern version for part 2" do
+    time = Day6.dekern_lines("Time:      7  15   30")
+    dist = Day6.dekern_lines("Distance:  9  40  200")
+
+    completed = Day6.calculate_races([time], [dist])
+
+    lengths = Enum.map(completed, fn sublist -> length(sublist) end)
+    Logger.debug("dekern lengths: #{inspect lengths}")
+  end
+
+  test "binary_search will find the smallest time that passes the distance test" do
+    time = 71530
+    dist = 940200
+
+    smallest_time = Day6.binary_search(0, time, time, dist, false)
+    Logger.debug("#{inspect smallest_time}")
+
+    assert Day6.beats_distance?(time, smallest_time, dist) != Day6.beats_distance?(time, smallest_time - 1, dist)
+  end
+
+  test "binary_search will find the largest time that passes the distance test if invert_search is true" do
+    time = 71530
+    dist = 940200
+
+    largest_time = Day6.binary_search(0, time, time, dist, true)
+    Logger.debug("#{inspect largest_time}")
+
+    assert Day6.beats_distance?(time, largest_time, dist) != Day6.beats_distance?(time, largest_time + 1, dist)
+  end
+
+  test "total range then can be calculated as such" do
+    time = 71530
+    dist = 940200
+
+    smallest_time = Day6.binary_search(0, time, time, dist, false)
+    largest_time = Day6.binary_search(0, time, time, dist, true)
+
+    total_range = largest_time - smallest_time + 1
+
+    assert total_range == 71503
   end
 
 end
