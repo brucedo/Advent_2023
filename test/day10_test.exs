@@ -111,7 +111,7 @@ defmodule Day10Test do
     assert Day10.trace_route(map, start_point) == {:ok, 8}
   end
 
-  test "Given a map and a starting point, find_walk will return a list of elements that are involved in the walk from start to start" do
+  test "Given a map and a starting point, find_walk will return the list of non-horizonal elements that are involved in the walk from start to start" do
     map = %{
       # %Point{x: 1, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}},
       %Point{x: 2, y: 1} => {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
@@ -126,13 +126,13 @@ defmodule Day10Test do
     walk = Day10.find_walk(map, %Point{x: 1, y: 1})
 
     assert walk == [
-      %Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 1, y: 2},
-      %Point{x: 3, y: 2}, %Point{x: 1, y: 3}, %Point{x: 2, y: 3}, %Point{x: 3, y: 3}
+      %Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 3, y: 2},
+      %Point{x: 3, y: 3}, %Point{x: 2, y: 3}, %Point{x: 1, y: 3}, %Point{x: 1, y: 2}
     ]
 
   end
 
-  test "Given a map with unconnected pipes, find_walk will return only the list of elements that are involved in the walk" do
+  test "Given a map with unconnected pipes, find_walk will return only the list of non-horizontal elements that are involved in the walk" do
     lines = [
       "-L|F7",
       "7S-7|",
@@ -148,8 +148,8 @@ defmodule Day10Test do
     walk = Day10.find_walk(map, start_point)
 
     assert walk == [
-      %Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 1, y: 2},
-      %Point{x: 3, y: 2}, %Point{x: 1, y: 3}, %Point{x: 2, y: 3}, %Point{x: 3, y: 3}
+      %Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 3, y: 2},
+      %Point{x: 3, y: 3}, %Point{x: 2, y: 3}, %Point{x: 1, y: 3}, %Point{x: 1, y: 2}
     ]
   end
 
@@ -158,13 +158,169 @@ defmodule Day10Test do
 
     sorted = Day10.sort_ascending(points)
 
-    assert points == [%Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}]
+    assert sorted == [%Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}]
   end
 
   test "Given a list of Points, rasterize will return a Map of points keyed by their y-coordinate and where each raster lines Points are ordered by ascending X value" do
     points = [
-      %Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 1, y: 2},
-      %Point{x: 3, y: 2}, %Point{x: 1, y: 3}, %Point{x: 2, y: 3}, %Point{x: 3, y: 3}
+      %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 1, y: 1}, %Point{x: 3, y: 2},
+      %Point{x: 1, y: 2}, %Point{x: 3, y: 3}, %Point{x: 2, y: 3}, %Point{x: 1, y: 3}
+    ]
+
+    sorted = Day10.rasterize(points)
+
+    assert Map.get(sorted, 1) == [%Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}]
+    assert Map.get(sorted, 2) == [%Point{x: 1, y: 2}, %Point{x: 3, y: 2}]
+    assert Map.get(sorted, 3) == [%Point{x: 1, y: 3}, %Point{x: 2, y: 3}, %Point{x: 3, y: 3}]
+  end
+
+  test "Given a map and a walk, infer_start will fill in the S field with an inferred value based on the start and end of the walk " do
+    map = %{
+      # %Point{x: 1, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}},
+      %Point{x: 2, y: 1} => {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      %Point{x: 3, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 3, y: 2}},
+      %Point{x: 1, y: 2} => {%Point{x: 1, y: 1}, %Point{x: 1, y: 3}},
+      %Point{x: 3, y: 2} => {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      %Point{x: 1, y: 3} => {%Point{x: 1, y: 2}, %Point{x: 2, y: 3}},
+      %Point{x: 2, y: 3} => {%Point{x: 1, y: 3}, %Point{x: 3, y: 3}},
+      %Point{x: 3, y: 3} => {%Point{x: 2, y: 3}, %Point{x: 3, y: 2}}
+    }
+    walk = [
+      %Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 3, y: 2},
+      %Point{x: 3, y: 3}, %Point{x: 2, y: 3}, %Point{x: 1, y: 3}, %Point{x: 1, y: 2}
+    ]
+
+    updated_map = Day10.infer_start(map, walk)
+
+    assert Map.get(updated_map, %Point{x: 1, y: 1}) == {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}}
+  end
+
+  test "Given a map and a corner value is_corner will return true" do
+    map = %{
+      # %Point{x: 1, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}},
+      %Point{x: 2, y: 1} => {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      %Point{x: 3, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 3, y: 2}},
+      %Point{x: 1, y: 2} => {%Point{x: 1, y: 1}, %Point{x: 1, y: 3}},
+      %Point{x: 3, y: 2} => {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      %Point{x: 1, y: 3} => {%Point{x: 1, y: 2}, %Point{x: 2, y: 3}},
+      %Point{x: 2, y: 3} => {%Point{x: 1, y: 3}, %Point{x: 3, y: 3}},
+      %Point{x: 3, y: 3} => {%Point{x: 2, y: 3}, %Point{x: 3, y: 2}}
+    }
+
+    corner = %Point{x: 3, y: 1}
+
+    assert Day10.is_corner?(map, corner)
+  end
+
+  test "Given a map and a vertical line is_corner will return false" do
+    map = %{
+      # %Point{x: 1, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}},
+      %Point{x: 2, y: 1} => {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      %Point{x: 3, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 3, y: 2}},
+      %Point{x: 1, y: 2} => {%Point{x: 1, y: 1}, %Point{x: 1, y: 3}},
+      %Point{x: 3, y: 2} => {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      %Point{x: 1, y: 3} => {%Point{x: 1, y: 2}, %Point{x: 2, y: 3}},
+      %Point{x: 2, y: 3} => {%Point{x: 1, y: 3}, %Point{x: 3, y: 3}},
+      %Point{x: 3, y: 3} => {%Point{x: 2, y: 3}, %Point{x: 3, y: 2}}
+    }
+
+    vertical = %Point{x: 3, y: 2}
+
+    refute Day10.is_corner?(map, vertical)
+
+  end
+
+  test "Given a map and a horizontal line is_corner will return false " do
+    map = %{
+      # %Point{x: 1, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}},
+      %Point{x: 2, y: 1} => {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      %Point{x: 3, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 3, y: 2}},
+      %Point{x: 1, y: 2} => {%Point{x: 1, y: 1}, %Point{x: 1, y: 3}},
+      %Point{x: 3, y: 2} => {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      %Point{x: 1, y: 3} => {%Point{x: 1, y: 2}, %Point{x: 2, y: 3}},
+      %Point{x: 2, y: 3} => {%Point{x: 1, y: 3}, %Point{x: 3, y: 3}},
+      %Point{x: 3, y: 3} => {%Point{x: 2, y: 3}, %Point{x: 3, y: 2}}
+    }
+
+    horizontal = %Point{x: 2, y: 1}
+
+    refute Day10.is_corner?(map, horizontal)
+
+  end
+
+  test "Given a walk that starts on an edge, rotate_to_corner will advance the head of the walk to the next corner" do
+    map = %{
+      # %Point{x: 1, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}},
+      %Point{x: 2, y: 1} => {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      %Point{x: 3, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 3, y: 2}},
+      %Point{x: 1, y: 2} => {%Point{x: 1, y: 1}, %Point{x: 1, y: 3}},
+      %Point{x: 3, y: 2} => {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      %Point{x: 1, y: 3} => {%Point{x: 1, y: 2}, %Point{x: 2, y: 3}},
+      %Point{x: 2, y: 3} => {%Point{x: 1, y: 3}, %Point{x: 3, y: 3}},
+      %Point{x: 3, y: 3} => {%Point{x: 2, y: 3}, %Point{x: 3, y: 2}}
+    }
+
+    walk = [
+      %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 3, y: 2},
+      %Point{x: 3, y: 3}, %Point{x: 2, y: 3}, %Point{x: 1, y: 3}, %Point{x: 1, y: 2}, %Point{x: 1, y: 1}
+    ]
+
+    assert Day10.rotate_to_corner(map, walk) == [
+      %Point{x: 3, y: 1}, %Point{x: 3, y: 2},
+      %Point{x: 3, y: 3}, %Point{x: 2, y: 3}, %Point{x: 1, y: 3}, %Point{x: 1, y: 2}, %Point{x: 1, y: 1}, %Point{x: 2, y: 1}
+    ]
+  end
+
+  test "Given a walk and a map, start_segment will produce a list of Point pairs except for the last, where each pair is a line in the polygon" do
+    map = %{
+      %Point{x: 1, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}},
+      %Point{x: 2, y: 1} => {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      %Point{x: 3, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 3, y: 2}},
+      %Point{x: 1, y: 2} => {%Point{x: 1, y: 1}, %Point{x: 1, y: 3}},
+      %Point{x: 3, y: 2} => {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      %Point{x: 1, y: 3} => {%Point{x: 1, y: 2}, %Point{x: 2, y: 3}},
+      %Point{x: 2, y: 3} => {%Point{x: 1, y: 3}, %Point{x: 3, y: 3}},
+      %Point{x: 3, y: 3} => {%Point{x: 2, y: 3}, %Point{x: 3, y: 2}}
+    }
+    walk = [
+      %Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 3, y: 2},
+      %Point{x: 3, y: 3}, %Point{x: 2, y: 3}, %Point{x: 1, y: 3}, %Point{x: 1, y: 2}
+    ]
+
+    polylines = Day10.start_segment(map, walk)
+
+    assert polylines == [
+      {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      {%Point{x: 3, y: 3}, %Point{x: 1, y: 3}},
+      {%Point{x: 1, y: 3}}
+    ]
+
+  end
+
+  test "Given a walk and a map, find_polygon will produce a list of Point pairs representing all lines in the walk" do
+    map = %{
+      %Point{x: 1, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 1, y: 2}},
+      %Point{x: 2, y: 1} => {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      %Point{x: 3, y: 1} => {%Point{x: 2, y: 1}, %Point{x: 3, y: 2}},
+      %Point{x: 1, y: 2} => {%Point{x: 1, y: 1}, %Point{x: 1, y: 3}},
+      %Point{x: 3, y: 2} => {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      %Point{x: 1, y: 3} => {%Point{x: 1, y: 2}, %Point{x: 2, y: 3}},
+      %Point{x: 2, y: 3} => {%Point{x: 1, y: 3}, %Point{x: 3, y: 3}},
+      %Point{x: 3, y: 3} => {%Point{x: 2, y: 3}, %Point{x: 3, y: 2}}
+    }
+    walk = [
+      %Point{x: 1, y: 1}, %Point{x: 2, y: 1}, %Point{x: 3, y: 1}, %Point{x: 3, y: 2},
+      %Point{x: 3, y: 3}, %Point{x: 2, y: 3}, %Point{x: 1, y: 3}, %Point{x: 1, y: 2}
+    ]
+
+    polylines = Day10.find_polygon(map, walk)
+
+    assert polylines == [
+      {%Point{x: 1, y: 1}, %Point{x: 3, y: 1}},
+      {%Point{x: 3, y: 1}, %Point{x: 3, y: 3}},
+      {%Point{x: 3, y: 3}, %Point{x: 1, y: 3}},
+      {%Point{x: 1, y: 3}, %Point{x: 1, y: 1}}
     ]
   end
 
