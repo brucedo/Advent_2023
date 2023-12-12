@@ -173,4 +173,66 @@ defmodule Day11Test do
     assert 374 == total_dist
   end
 
+  test "Given a list of lists of space elements, find_empty_rows will return the 0-based indices of those rows that are empty" do
+    lines = [
+      "...#......",
+      ".......#..",
+      "#.........",
+      "..........",
+      "......#...",
+      ".#........",
+      ".........#",
+      "..........",
+      ".......#..",
+      "#...#....."
+    ]
+    universe = Enum.map(lines, fn line -> String.graphemes(line) end)
+
+    empty_rows = Day11.find_empty_rows(universe)
+    empty_columns = Enum.zip_with(universe, &Function.identity/1) |> Day11.find_empty_rows()
+
+    assert empty_rows == [3, 7]
+    assert empty_columns == [2, 5, 8]
+  end
+
+  test "Given a pair of points {4, 4} and {6, 6} and empty row/column lists that do not coincide with the path between the two points, find_big_distance will return 4" do
+    pair = {%Point{x: 4, y: 4}, %Point{x: 6, y: 6}}
+    empty_rows = [1, 2, 8]
+    empty_columns = [ 2, 7, 12]
+
+    assert Day11.big_distance(pair, empty_rows, empty_columns, 1000000) == 4
+  end
+
+  test "Given a pair of points {4, 4} and {6, 6} and empty row/column lists where one row coincides with the path between the two points, find_big_distance will return 1,000,003" do
+    pair = {%Point{x: 4, y: 4}, %Point{x: 6, y: 6}}
+    empty_rows = [1, 5, 8]
+    empty_columns = [ 2, 7, 12]
+
+    assert Day11.big_distance(pair, empty_rows, empty_columns, 1000000) == 1000003
+  end
+
+  test "Given a pair of points {4, 4} and {6, 6} and empty row_column lists where one column coincides with the path between the two points, find_big_distances will return 1,000,003" do
+    pair = {%Point{x: 4, y: 4}, %Point{x: 6, y: 6}}
+    empty_rows = [1, 2, 8]
+    empty_columns = [ 2, 5, 12]
+
+    assert Day11.big_distance(pair, empty_rows, empty_columns, 1000000) == 1000003
+  end
+
+  test "Given a pair of points {4, 4} and {6, 6} and empty row_column lists where one row and column coincide with the path between the points, find_big_distances will return 2,000,002" do
+    pair = {%Point{x: 4, y: 4}, %Point{x: 6, y: 6}}
+    empty_rows = [1, 5, 8]
+    empty_columns = [ 2, 5, 12]
+
+    assert Day11.big_distance(pair, empty_rows, empty_columns, 1000000) == 2000002
+  end
+
+  test "Given a pair of points {1, 1} and {10, 10} where empty_row and empty_space coincide with all points between the paths, find_big_distances will return 18000002" do
+    pair = {%Point{x: 1, y: 1}, %Point{x: 10, y: 10}}
+    empty_rows =  [2, 3, 4, 5, 6, 7, 8, 9]
+    empty_columns = [2, 3, 4, 5, 6, 7, 8, 9]
+
+    assert Day11.big_distance(pair, empty_rows, empty_columns, 1000000) == 18000002
+  end
+
 end

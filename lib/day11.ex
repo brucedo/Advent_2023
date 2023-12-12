@@ -14,6 +14,21 @@ require Logger
     IO.puts("Total length is possibly #{Integer.to_string(total_dist)}")
   end
 
+  @spec big_distance({Point.p(), Point.p()}, list(integer()), list(integer()), integer()) :: integer()
+  def big_distance({left, right}, empty_rows, empty_columns, expansion_coeffient) do
+    {small_x, large_x} = if left.x < right.x do {left.x, right.x} else {right.x, left.x} end
+    {small_y, large_y} = if left.y < right.y do {left.y, right.y} else {right.y, left.y} end
+
+    empty_col_count = Enum.filter(empty_columns, fn col -> small_x < col && col < large_x end) |> Enum.count()
+    empty_row_count = Enum.filter(empty_rows, fn row -> small_y < row && row < large_y end) |> Enum.count()
+
+    x_distance = (large_x - small_x - empty_col_count) + (empty_col_count * expansion_coeffient)
+    y_distance = (large_y - small_y - empty_row_count) + (empty_row_count * expansion_coeffient)
+
+    x_distance + y_distance
+
+  end
+
   @spec calculate_taxi_distance({Point.p(), Point.p()}) :: integer()
   def calculate_taxi_distance({left, right}) do
     # Logger.debug("left #{inspect left} - right #{inspect right} = #{abs(left.x - right.x) + abs(left.y - right.y)}")
@@ -76,6 +91,21 @@ require Logger
   @spec has_galaxies?(list(String.t())) :: boolean()
   def has_galaxies?(space_line) do
     Enum.any?(space_line, fn element -> element == "#" end)
+  end
+
+  @spec find_empty_rows(list(list(String.t()))) :: list(number())
+  def find_empty_rows(space_lines) do
+    find_empty_rows(space_lines, 0)
+  end
+
+  defp find_empty_rows([], _) do
+    []
+  end
+  defp find_empty_rows([current_line | space_lines], counter) do
+    case has_galaxies?(current_line) do
+      true -> find_empty_rows(space_lines, counter + 1)
+      false -> [counter] ++ find_empty_rows(space_lines, counter + 1)
+    end
   end
 
   @spec expand_line(list(list(String.t()))) :: list(list(String.t()))
