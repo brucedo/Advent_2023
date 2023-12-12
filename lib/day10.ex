@@ -15,21 +15,62 @@ require Logger
     end
 
     # Part 2
-    walk = find_walk(map, start_point)
-    map_with_start = infer_start(map, start_point)
+    walk = Day10.find_walk(map, start_point)
+    map_with_start = Day10.infer_start(map, walk)
+    walk = Day10.rotate_to_corner(map_with_start, walk)
+    polygon = Day10.find_polygon(map_with_start, walk)
+
+    height = length(lines)
+    width = List.first(lines) |> String.length()
+
+    analysis = for x <- 0..width - 1, y <- 0..height - 1, do: {Day10.count_crossings(y, x, polygon), Day10.is_point_in_pipe?(polygon, %Point{x: x, y: y})}
+
+    inside = Enum.filter(analysis, fn {_, inside} -> !inside end) |> Enum.filter(fn {crossing, _} -> crossing != 0 && Integer.mod(crossing, 2) != 0 end)
+
+    IO.puts("Well if this heap of shit hasn't lied to me, then the answer is apparently #{Integer.to_string(Enum.count(inside))}")
 
   end
 
-  @spec is_inside?(list({Point.p(), Point.p()}), Point.p()) :: boolean()
-  def is_inside?(polygon, point) do
-    raster_line = point.y
+  @spec is_point_in_pipe?(list({Point.p(), Point.p()}), Point.p()) :: boolean()
+  def is_point_in_pipe?([], _) do
+    false
+  end
+  def is_point_in_pipe?([{line_start, line_end} | rest], point)
+  when line_start.y == line_end.y
+  do
+
+    {left, right} = if line_start.x < line_end.x do {line_start.x, line_end.x} else {line_end.x, line_start.x} end
+    case point.x >= left && point.x <= right && point.y == line_start.y do
+      true -> true
+      false -> is_point_in_pipe?(rest, point)
+    end
+  end
+  def is_point_in_pipe?([{line_start, line_end} | rest], point)
+  when line_start.x == line_end.x
+  do
+    {top, bottom} = if line_start.y < line_end.y do {line_start.y, line_end.y} else {line_end.y, line_start.y} end
+    case point.y >= top && point.y <= bottom && point.x == line_start.x do
+      true -> true
+      false -> is_point_in_pipe?(rest, point)
+    end
   end
 
   def count_crossings(_, _, []) do
     0
   end
-  def count_crossings(raster_line, x_intercept, [line | polylines]) do
-
+  def count_crossings(raster_line, x_intercept, [{start_point, end_point} | polylines])
+  when start_point.y == end_point.y
+  when start_point.x > x_intercept
+  do
+    count_crossings(raster_line, x_intercept, polylines)
+  end
+  def count_crossings(raster_line, x_intercept, [{start_point, end_point} | polylines])
+  do
+    cond do
+      (start_point.y > raster_line && end_point.y <= raster_line) || (end_point.y > raster_line && start_point.y <= raster_line) ->
+        count_crossings(raster_line, x_intercept, polylines) + 1
+      true -> count_crossings(raster_line, x_intercept, polylines)
+    end
   end
 
   def find_polygon(map, walk) do
@@ -88,7 +129,7 @@ require Logger
 
   @spec find_walk(pointmap(), Point.p()) :: list(Point.p())
   def find_walk(map, start) do
-    walk = walk_and_record(map, start, start, %Point{x: start.x + 1, y: start.y}) |> elem(1)
+    walk = walk_and_record(map, start, start, %Point{x: start.x, y: start.y + 1}) |> elem(1)
     [start] ++ walk
   end
 
@@ -101,7 +142,6 @@ require Logger
   end
   defp walk_and_record(map, start, current, next) do
     connections = Map.get(map, next)
-    Logger.debug("Trying to walk from #{inspect current} to #{inspect next}, next has connections #{inspect connections}")
     case next_exit(current, connections) do
       {:error, msg} -> {:error, msg}
       {:ok, exit_point} ->
