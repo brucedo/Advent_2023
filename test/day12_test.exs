@@ -32,7 +32,7 @@ defmodule Day12Test do
 
   test "Given a pattern of 3 ? and a number 2, bind_pattern will return {:ok, ''}" do
     pattern = "???"
-    number = 1
+    number = 2
 
     assert Day12.bind_pattern(pattern, number) == {:ok, ""}
   end
@@ -65,11 +65,11 @@ defmodule Day12Test do
     assert Day12.bind_pattern(pattern, number) == {:error}
   end
 
-  test "Given a pattern of ?#? and a number 1, bind_pattern will return {:ok, ''}" do
+  test "Given a pattern of ?#? and a number 1, bind_pattern will return {:error}" do
     pattern = "?#?"
     number = 1
 
-    assert Day12.bind_pattern(pattern, number) == {:ok, ""}
+    assert Day12.bind_pattern(pattern, number) == {:error}
   end
 
   test "Given a pattern of ??# and a number 1, bind_pattern will return {:ok, '#'}" do
@@ -105,5 +105,21 @@ defmodule Day12Test do
     number = 0
 
     assert Day12.bind_pattern(pattern, number) == {:error}
+  end
+
+  test "Given a line of #.#.### and a sequence of 1, 1, 3, count_bindings should return 1" do
+
+  end
+
+  test "Given a pattern ???.### and a sequence of 1, 1, 3, count_bindings should return 1" do
+
+  end
+
+  test "Given a pattern of ?###???????? and a sequence of 3, 2, 1, count_bindings should return 10" do
+
+  end
+
+  test "Bring it all together for example for part 1" do
+
   end
 end
