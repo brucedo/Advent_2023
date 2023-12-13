@@ -12,6 +12,17 @@ require Logger
     total_dist = Enum.sum(calculated_distances)
 
     IO.puts("Total length is possibly #{Integer.to_string(total_dist)}")
+
+    universe = Enum.map(lines, fn line -> String.graphemes(line) end)
+
+    empty_rows = Day11.find_empty_rows(universe)
+    empty_columns = Enum.zip_with(universe, &Function.identity/1) |> Day11.find_empty_rows()
+    pairs = Day11.find_pairs(universe)
+
+    calculated_distances = Enum.map(pairs, fn pair -> Day11.big_distance(pair, empty_rows, empty_columns, 1000000) end)
+
+    total_dist = Enum.sum(calculated_distances)
+    IO.puts("The calculated distance for part 2 is #{Integer.to_string total_dist}")
   end
 
   @spec big_distance({Point.p(), Point.p()}, list(integer()), list(integer()), integer()) :: integer()
@@ -19,11 +30,19 @@ require Logger
     {small_x, large_x} = if left.x < right.x do {left.x, right.x} else {right.x, left.x} end
     {small_y, large_y} = if left.y < right.y do {left.y, right.y} else {right.y, left.y} end
 
+    Logger.debug("small_x and small_y: #{Integer.to_string small_x}, #{Integer.to_string small_y}")
+    Logger.debug("large_x and large_y: #{Integer.to_string large_x}, #{Integer.to_string large_y}")
+
     empty_col_count = Enum.filter(empty_columns, fn col -> small_x < col && col < large_x end) |> Enum.count()
     empty_row_count = Enum.filter(empty_rows, fn row -> small_y < row && row < large_y end) |> Enum.count()
 
+    Logger.debug("Empty column count: #{Integer.to_string empty_col_count}")
+    Logger.debug("Empty row count: #{Integer.to_string empty_row_count}")
+
     x_distance = (large_x - small_x - empty_col_count) + (empty_col_count * expansion_coeffient)
     y_distance = (large_y - small_y - empty_row_count) + (empty_row_count * expansion_coeffient)
+
+    Logger.debug("x_distance and y_distance: #{Integer.to_string x_distance}, #{Integer.to_string y_distance}")
 
     x_distance + y_distance
 

@@ -232,7 +232,58 @@ defmodule Day11Test do
     empty_rows =  [2, 3, 4, 5, 6, 7, 8, 9]
     empty_columns = [2, 3, 4, 5, 6, 7, 8, 9]
 
-    assert Day11.big_distance(pair, empty_rows, empty_columns, 1000000) == 18000002
+    assert Day11.big_distance(pair, empty_rows, empty_columns, 1000000) == 16000002
+  end
+
+  test "Try the example with multiplicand of 10" do
+    lines = [
+      "...#......",
+      ".......#..",
+      "#.........",
+      "..........",
+      "......#...",
+      ".#........",
+      ".........#",
+      "..........",
+      ".......#..",
+      "#...#....."
+    ]
+    universe = Enum.map(lines, fn line -> String.graphemes(line) end)
+
+    empty_rows = Day11.find_empty_rows(universe)
+    empty_columns = Enum.zip_with(universe, &Function.identity/1) |> Day11.find_empty_rows()
+    pairs = Day11.find_pairs(universe)
+
+    calculated_distances = Enum.map(pairs, fn pair -> Day11.big_distance(pair, empty_rows, empty_columns, 10) end)
+    Logger.debug("#{inspect(calculated_distances)}")
+    total_dist = Enum.sum(calculated_distances)
+    assert 1030 == total_dist
+
+  end
+
+  test "Try the example with an expansion multiplier of 100" do
+    lines = [
+      "...#......",
+      ".......#..",
+      "#.........",
+      "..........",
+      "......#...",
+      ".#........",
+      ".........#",
+      "..........",
+      ".......#..",
+      "#...#....."
+    ]
+    universe = Enum.map(lines, fn line -> String.graphemes(line) end)
+
+    empty_rows = Day11.find_empty_rows(universe)
+    empty_columns = Enum.zip_with(universe, &Function.identity/1) |> Day11.find_empty_rows()
+    pairs = Day11.find_pairs(universe)
+
+    calculated_distances = Enum.map(pairs, fn pair -> Day11.big_distance(pair, empty_rows, empty_columns, 100) end)
+    Logger.debug("#{inspect(calculated_distances)}")
+    total_dist = Enum.sum(calculated_distances)
+    assert 8410 == total_dist
   end
 
 end
